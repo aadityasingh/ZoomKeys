@@ -5,8 +5,8 @@ from scipy.io import wavfile
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-fig, axs = plt.subplots(3,1,sharex=True)
 for p in ['aaditya']:
+	fig, axs = plt.subplots(3,1,sharex=True)
 	base = '/'.join(['Recordings', p])
 	f = '/'.join([base,'template.m4a'])
 	newf = '/'.join([base,'template.wav'])
@@ -14,7 +14,7 @@ for p in ['aaditya']:
 		os.system('ffmpeg -i '+f+' '+newf)
 	template = wavfile.read(newf)[1]
 	for i, num in enumerate(template):
-		if num > 50:
+		if num > 10:
 			template = template[i:]
 			break
 
@@ -44,7 +44,7 @@ for p in ['aaditya']:
 			assert len(peaks) == 2
 			for peak in peaks:
 				axs[i].plot(range(peak-len(template),peak), template)
-			wavfile.write('/'.join([base,newf]), sr, contents[peaks[0]:peaks[1]-len(template)])
+			wavfile.write('/'.join([base,newf]), sr, contents[peaks[0]:peaks[1]-len(template)-int(0.05*sr)])
 			os.system('rm '+'/'.join([base,tempf]))
 			i = i+1
 plt.show()
