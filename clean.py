@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 for p in ['aaditya']:
-	fig, axs = plt.subplots(3,1,sharex=True)
+	fig, axs = plt.subplots(2,1,sharex=True)
 	base = '/'.join(['Recordings', p])
 	f = '/'.join([base,'template.m4a'])
 	newf = '/'.join([base,'template.wav'])
@@ -33,6 +33,8 @@ for p in ['aaditya']:
 			newf = f[:-4]+'.wav'
 			if not os.path.isfile('/'.join([base,newf])):
 				os.system('ffmpeg -i '+'/'.join([base,f]) + ' '+'/'.join([base,tempf]))
+			else:
+				continue
 			sr, contents = wavfile.read('/'.join([base, tempf]))
 			axs[i].plot(contents, linewidth=0.2)
 			# vals = 
@@ -40,11 +42,16 @@ for p in ['aaditya']:
 			# print(len(vals))
 			# axs[i+1].plot(np.abs(sps.hilbert(contents)))
 			cross_corr = sps.correlate(np.abs(sps.hilbert(contents)), np.abs(sps.hilbert(template)))
-			peaks, _ = sps.find_peaks(cross_corr,distance=len(cross_corr)//2) 
-			assert len(peaks) == 2
-			for peak in peaks:
-				axs[i].plot(range(peak-len(template),peak), template)
-			wavfile.write('/'.join([base,newf]), sr, contents[peaks[0]:peaks[1]-len(template)-int(0.05*sr)])
+			# Code for doing the template before and after
+			# peaks, _ = sps.find_peaks(cross_corr,distance=len(cross_corr)//2) 
+			# assert len(peaks) == 2
+			# for peak in peaks:
+			# 	axs[i].plot(range(peak-len(template),peak), template)
+			# wavfile.write('/'.join([base,newf]), sr, contents[peaks[0]:peaks[1]-len(template)-int(0.05*sr)])
+			# Code for doing the template before:
+			start = int(np.argmax(cross_corr)+0.05*sr)
+			axs[i].plot(range(start-len(template),start), template)
+			wavfile.write('/'.join([base,newf]), sr, contents[start:])
 			os.system('rm '+'/'.join([base,tempf]))
 			i = i+1
 plt.show()
