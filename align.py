@@ -13,10 +13,10 @@ keyboards=['lauren']
 # spec for dataset:
 # dictionary mapping characters to lists of raw audios (which will be lists of integers)
 # Filter out first N characters (maybe 20ish) from all audio clips
-# Filter out any windows that do not contain any samples with magnitude greater than M=10
+# Filter out any windows that do not contain any samples with magnitude greater than M=15
 # Filter out characters before and after shifts (and shifts)
 # if time between characters is less than some threshold, cut both of them and the ones before and after the range of fast ones
-# all lowercase
+# all lowercase in dictionary
 # make all of these configurable so we can just call a "generate dataset" method or something
 
 def generate_dataset(audioFile, raw_char_lifts, indices):
