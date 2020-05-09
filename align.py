@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from constants import sr#, people, sentences, counts
 
-keyboards=['aaditya']
+keyboards=['lauren']
 
+fig_count = 1
 data=dict()
 for p in keyboards:
 	base = '/'.join(['Recordings', p])
 	pd = data.setdefault(p, [])
 	for f in os.listdir(base):
-		if f.endswith('0.wav') and not f.startswith('template'):
+		if f.endswith('.wav') and not f.startswith('template'):
 			df_times = pandas.read_csv('/'.join([base, f[:-4]+'.csv']))
 			raw_times = df_times[df_times.columns[1]].values/1000
 			raw_char_lifts = df_times[df_times.columns[2]].values
@@ -41,6 +42,7 @@ for p in keyboards:
 				chars.append(raw_char_lifts[i])
 				indices.append(np.argmax(wav[start:end])+start)
 			print(len(chars),len(indices), len(raw_times))
+			plt.figure(1)
 			plt.plot(np.arange(len(wav))/sr,wav, linewidth=0.2)
 			# for i,idx in enumerate(indices):
 			# 	plt.plot(idx/sr, wav[idx]+10, 'v',c='k')
@@ -51,5 +53,7 @@ for p in keyboards:
 				char = '_' if raw_char_lifts[i]==' ' else raw_char_lifts[i]
 				plt.text(rawt, wav[int(rawt*sr)]+20, char, fontsize=12, c='r', horizontalalignment='center')
 			plt.show()
+
+
 
 # {'aaditya': {'1': {'raw_data': [[trial1], [trial2]], 'peaks': [locs]}, '2': ..}}
