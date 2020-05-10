@@ -5,7 +5,7 @@ from scipy.io import wavfile
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-for p in ['william']:
+for p in ['lauren']:
 	fig, axs = plt.subplots(2,1,sharex=True)
 	base = '/'.join(['Recordings', p])
 	f = '/'.join([base,'template.m4a'])
