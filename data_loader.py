@@ -48,7 +48,7 @@ class KeystrokeDataset(Dataset):
             else:
             	raise NotImplementedError
             self.class_counts[i] += 1
-        print("Length of dataset:", len(selof.samples))
+        print("Length of dataset:", len(samples))
 
     def __getitem__(self, index):
         return self.samples[index]
@@ -82,5 +82,5 @@ def load_data(train_data, val_data, test_data, opts):
         val_dloader = DataLoader(dataset=val_dataset, batch_size=min(opts.batch_size, len(val_dataset)), shuffle=True, num_workers=opts.num_workers)
         test_dloader = DataLoader(dataset=test_dataset, batch_size=min(opts.batch_size, len(test_dataset)), shuffle=True, num_workers=opts.num_workers)
 
-    return train_dataset.channels, train_dloader, val_dloader, test_dloader
+    return train_dataset.channels, len(train_sampler.class_counts), train_dloader, val_dloader, test_dloader
 

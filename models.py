@@ -32,7 +32,7 @@ def linear(in_channels, out_channels, batch_norm=True):
 #         return out
 
 class CNN2019(nn.Module):
-    def __init__(self, in_channels, num_classes, avg_pool=1, conv_dim=32, hs=[64,32], batch_norm=False):
+    def __init__(self, in_channels, num_classes, avg_pool=1, conv_dim=32, hs=[64,32]):
         self.conv1 = conv(in_channels, conv_dim, 1,1,0)
         self.conv2 = conv(in_channels, conv_dim, 1,3,1)
         self.conv3 = conv(in_channels, conv_dim, 1,1,0)
