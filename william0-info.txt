@@ -1,0 +1,33 @@
+char, count, avg length:  a 358 10022.963687150837
+char, count, avg length:  b 51 14396.882352941177
+char, count, avg length:  c 141 9175.595744680852
+char, count, avg length:  d 133 11269.518796992481
+char, count, avg length:  e 626 8964.65015974441
+char, count, avg length:  f 109 11726.339449541285
+char, count, avg length:  g 108 11400.87037037037
+char, count, avg length:  h 191 9421.387434554974
+char, count, avg length:  i 317 13308.586750788643
+char, count, avg length:  k 35 14937.685714285713
+char, count, avg length:  l 175 11997.085714285715
+char, count, avg length:  m 100 13591.68
+char, count, avg length:  n 438 11756.267123287671
+char, count, avg length:  o 345 11467.84927536232
+char, count, avg length:  p 104 16423.375
+char, count, avg length:  q 10 8639.7
+char, count, avg length:  r 385 9416.251948051948
+char, count, avg length:  s 283 10611.696113074206
+char, count, avg length:  t 475 11430.541052631579
+char, count, avg length:  u 108 11231.12962962963
+char, count, avg length:  v 42 12562.952380952382
+char, count, avg length:  w 78 12308.128205128205
+char, count, avg length:  x 13 12851.846153846154
+char, count, avg length:  y 48 11443.395833333334
+char, count, avg length:  z 1 14176.0
+char, count, avg length:    894 16333.70581655481
+char, count, avg length:  . 45 22694.4
+char, count, avg length:  comma 40 18952.8
+char, count, avg length:  ' 26 34656.0
+Too short char spaces 36
+Next to Shift 27
+No peak 2
+Gathered samples 5679

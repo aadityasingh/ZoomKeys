@@ -1,13 +1,12 @@
 import torch.backends.cudnn as cudnn
 import torch.nn.init as init
 import torch.utils.data
-import torchvision.utils as tvut
-import torchvision.models as models
 import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
+import pickle as pkl
 
 import os
 
@@ -17,51 +16,23 @@ from cnn_train import CNNTrainer
 # from evaluate import Evaluator
 
 def make_model(data, opts):
-	channels, num_classes, train_loader, val_loader, test_loader = load_data(opts)
-	model = CNN2019(in_channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs)
+	channels, num_classes, train_loader, val_loader, test_loader = load_data(train_data, val_data, test_data, opts)
+	if opts.model =='cnn2019':
+		model = CNN2019(in_channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs)
+	else:
+		raise NotImplementedError
 	if opts.cuda:
 		model.cuda()
 		print('Using GPU')
 
 	return model, train_loader, test_loader
 
-def make_cnn(opts):
-	if opts.cnn_type == 'resnet18':
-		opts.normalize = 'resnet'
-		model = models.resnet18(pretrained=True)
-	elif opts.cnn_type == 'resnet50':
-		opts.normalize = 'resnet'
-		model = models.resnet50(pretrained=True)
-	else:
-		raise NotImplementedError
-
-	PYTORCH_RESNET_LAYERS = 10
-	PYTORCH_REAL_RESNET_LAYERS = 8 # Last two layers are avg_pool and fc
-	fixed_layers = PYTORCH_REAL_RESNET_LAYERS - opts.retrainable_layers
-	for i, child in enumerate(model.children()):
-		if i < fixed_layers:
-			for param in child.parameters():
-				param.requires_grad = False
-
-	num_ftrs = model.fc.in_features
-	model.fc = nn.Linear(num_ftrs,len(opts.movements))
-
-	if opts.cuda:
-		model.cuda()
-		print("Using GPU for CNN")
-	train_loader, test_loader = load_data(opts)
-	return model, train_loader, test_loader
-
 def cnn_train(model, train_loader, test_loader, opts):
-	# From keras script (thanks albert!)
-	# Batch size: 32 (passed in)
-	# Best optim: AMSGrad
-	# lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False
 	optimizer = optim.Adam(model.parameters(), lr=opts.lr, amsgrad=True)
 	loss = nn.CrossEntropyLoss()
 
 	if opts.load_from_chkpt != None:
-		checkpoint = torch.load('/'.join([opts.base_path,'cnn_runs',opts.run,'checkpoints',opts.load_from_chkpt]))
+		checkpoint = torch.load('/'.join([opts.base_path,'runs',opts.run,'checkpoints',opts.load_from_chkpt]))
 		model.load_state_dict(checkpoint['state_dict'])
 		opts.start_epoch = checkpoint['epoch']
 		print("Start epoch", opts.start_epoch)
@@ -70,33 +41,6 @@ def cnn_train(model, train_loader, test_loader, opts):
 	trainer = CNNTrainer(model, optimizer, loss, train_loader, test_loader, opts)
 
 	trainer.train(opts)
-
-def eval(model, classifier, test_loader, opts):
-	checkpoint = torch.load('/'.join([opts.base_path,'runs',opts.run,'checkpoints',opts.load_from_chkpt]), map_location='cpu')
-	model.load_state_dict(checkpoint['state_dict'])
-
-	run_data_type = opts.run.split("Class")[0]
-	checkpoint = torch.load('/'.join([opts.base_path,'cnn_runs',run_data_type+"ClassRes18R0",'checkpoints',"checkpoint.pth.tar"]), map_location='cpu')
-	classifier.load_state_dict(checkpoint['state_dict'])
-
-	evaluator = Evaluator(model, classifier, test_loader, opts)
-
-	if opts.eval_type == 'all':
-		evaluator.generate()
-		evaluator.cluster()
-		evaluator.interpolate()
-		evaluator.four_by_four()
-		evaluator.latent_grid()
-	elif opts.eval_type == 'randgen':
-		evaluator.generate()
-	elif opts.eval_type == 'cluster':
-		evaluator.cluster()
-	elif opts.eval_type == 'transform':
-		evaluator.interpolate()
-	elif opts.eval_type == 'real_cluster':
-		evaluator.latent_grid()
-	else:
-		raise NotImplementedError
 
 def create_parser():
 	parser = argparse.ArgumentParser()
@@ -126,7 +70,7 @@ def create_parser():
 
 	# data params
 	parser.add_argument('--num_workers', type=int, default=1)
-	parser.add_argument('--data_file', default='dataset.pkl')
+	parser.add_argument('--data_files', nargs='*', default=['dataset.pkl'])
 	parser.add_argument('--balance_classes', type=int, default=1)
 
 	# audio process params
@@ -135,16 +79,14 @@ def create_parser():
 	parser.add_argument('--slide', type=int, default=10, help='Amount to slide window (in ms) for above transform')
 	parser.add_argument('--numceps', type=int, default=40, help='Number of cepstral filters/features to keep')
 
-	parser.add_argument('--dfc', default='discrim', help='Pick from discrim, encoder')
-	parser.add_argument('--dfc_path', default='D_Xfull.pkl', help='Path beyond base_path to get to pkl or checkpoint file... example: runs/fiveClassTrueTrue/checkpoints/checkpoint.pth.tar')
 
 	# Evaluation arguments
-	parser.add_argument('--eval_type', dest='eval_type', default='all', help='Choose from randgen, cluster, transform, real_cluster, all')
-	# Note for eval, we always use the Res18R1 CNN trained on that dataset
-	parser.add_argument('--op_samples', dest='op_samples', type=int, default=400, help='Number of images to do eval_type on and plot')
-	parser.add_argument('--pca_components', dest='pca_components', type=int, default=6, help='Number of PCA components to show')
-	parser.add_argument('--random_pick', dest='random_pick', type=int, default=0, help="Whether or not to pick images to interpolate randomly")
-	# TODO make intermediate a passable parameter... not enough time rn tho
+	# parser.add_argument('--eval_type', dest='eval_type', default='all', help='Choose from randgen, cluster, transform, real_cluster, all')
+	# # Note for eval, we always use the Res18R1 CNN trained on that dataset
+	# parser.add_argument('--op_samples', dest='op_samples', type=int, default=400, help='Number of images to do eval_type on and plot')
+	# parser.add_argument('--pca_components', dest='pca_components', type=int, default=6, help='Number of PCA components to show')
+	# parser.add_argument('--random_pick', dest='random_pick', type=int, default=0, help="Whether or not to pick images to interpolate randomly")
+	# # TODO make intermediate a passable parameter... not enough time rn tho
 	# parser.add_argument('--intermediate', dest='intermediate', type=int, default=16, help='How many intermediate images to have in interpolation')
 
 	return parser
@@ -165,15 +107,18 @@ if __name__ == "__main__":
 	# 	print('bla')
 	# print(batch_idx)
 	# print(counts)
+	with open(data_file, 'rb') as f:
+		data = pkl.load(f)
 	if opts.mode == 'train':
-		model, train_loader, val_loader, _ = make_model(opts)
+		model, train_loader, val_loader, _ = make_model(data, opts)
 		cnn_train(model, train_loader, val_loader, opts)
 	elif opts.mode == 'eval':
-		opts.cuda = 0
-		opts.batch_size = opts.op_samples
-		model, _, _, test_loader = make_model(opts)
-		classifier, _, _ = make_cnn(opts)
-		eval(model, classifier, test_loader, opts)
+		raise NotImplementedError
+		# opts.cuda = 0
+		# opts.batch_size = opts.op_samples
+		# model, _, _, test_loader = make_model(opts)
+		# classifier, _, _ = make_cnn(opts)
+		# eval(model, classifier, test_loader, opts)
 	else:
 		raise NotImplementedError
 	# gen_image('./runs/checkpoints/checkpoint2.pth.tar')

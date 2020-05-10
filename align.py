@@ -7,9 +7,6 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from constants import sr#, people, sentences, counts
 
-keyboards=['lauren']
-
-
 # spec for dataset:
 # dictionary mapping characters to lists of raw audios (which will be lists of integers)
 # Filter out first N characters (maybe 20ish) from all audio clips
@@ -61,6 +58,7 @@ def generate_dataset(audioFile, raw_char_lifts, indices):
 
 
 fig_count = 1
+keyboards=['lauren']
 data=dict()
 for p in keyboards:
 	base = '/'.join(['Recordings', p])

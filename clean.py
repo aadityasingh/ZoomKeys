@@ -5,7 +5,7 @@ from scipy.io import wavfile
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-for p in ['lauren']:
+for p in ['william']:
 	fig, axs = plt.subplots(2,1,sharex=True)
 	base = '/'.join(['Recordings', p])
 	f = '/'.join([base,'template.m4a'])
@@ -41,7 +41,7 @@ for p in ['lauren']:
 			# print(len(contents))
 			# print(len(vals))
 			# axs[i+1].plot(np.abs(sps.hilbert(contents)))
-			cross_corr = sps.correlate(np.abs(sps.hilbert(contents)), np.abs(sps.hilbert(template)))
+			cross_corr = sps.correlate(np.abs(sps.hilbert(contents[:len(contents)//2])), np.abs(sps.hilbert(template)))
 			# Code for doing the template before and after
 			# peaks, _ = sps.find_peaks(cross_corr,distance=len(cross_corr)//2) 
 			# assert len(peaks) == 2
