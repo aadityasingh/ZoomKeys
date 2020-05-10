@@ -11,7 +11,7 @@ import pickle as pkl
 import os
 import numpy as np
 
-from models import CNN2019
+from models import CNN2019, CNN2019Raw
 from data_loader import load_data
 from cnn_train import CNNTrainer
 # from evaluate import Evaluator
@@ -20,6 +20,8 @@ def make_model(train_data, val_data, test_data, opts):
 	channels, num_classes, train_loader, val_loader, test_loader = load_data(train_data, val_data, test_data, opts)
 	if opts.model =='cnn2019':
 		model = CNN2019(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
+	elif opts.model =='cnn2019raw':
+		model = CNN2019Raw(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
 	else:
 		raise NotImplementedError
 	if opts.cuda:
@@ -52,7 +54,7 @@ def create_parser():
 	parser.add_argument('--run', default='run')
 
 	# model params
-	parser.add_argument('--model', default='cnn2019', help='Choose from cnn2019')
+	parser.add_argument('--model', default='cnn2019', help='Choose from cnn2019, cnn2019raw')
 	parser.add_argument('--conv_dim', type=int, default=32, help='Num filters for the cnn2019 -- each layer has same # filters')
 	parser.add_argument('--hs', default=[64,32], nargs='*', type=int, help='List of')
 	parser.add_argument('--avg_pool', default=1, type=int, help='What to global average pool to per channel, default 1')

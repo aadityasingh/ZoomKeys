@@ -43,10 +43,10 @@ class KeystrokeDataset(Dataset):
                 for audio in data[key]: self.samples.append((mfcc(np.array(audio), sr,winlen=opts.window/1000, winstep=opts.slide/1000, nfft=800,nfilt=opts.ceps,numcep=opts.ceps).T, i))
                 self.channels = opts.ceps
             elif opts.transform == 'stft':
-                for audio in data[key]: self.samples.append((stft(np.array(audio), sr, nperseg=int(opts.window*sr/1000), noverlap=int(opts.slide*sr/1000))[2], i))
+                for audio in data[key]: self.samples.append((np.array(np.abs(stft(np.array(audio), sr, nperseg=int(opts.window*sr/1000), noverlap=int(opts.slide*sr/1000))[2])**2,dtype=np.float64), i))
                 self.channels = int(opts.window*sr/1000)//2+1
             elif opts.transform == 'raw':
-                for audio in data[key]: self.samples.append((np.array(audio), i))
+                for audio in data[key]: self.samples.append((np.array([audio],dtype=np.float64), i))
                 self.channels = 1
             else:
                 raise NotImplementedError
