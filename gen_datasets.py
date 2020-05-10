@@ -28,6 +28,7 @@ def generate_dataset(audioFile, raw_char_lifts, indices):
 
 	# take out the first 20-ish chars
 	thrown_out_too_short = 0
+	full_window_too_short = 0
 	thrown_out_shift = 0
 	thrown_out_no_peak = 0
 	accepted = 0
@@ -43,6 +44,10 @@ def generate_dataset(audioFile, raw_char_lifts, indices):
 		mindiff = 0.01*sr #10ms
 		if indices[i] - indices[i-1] < mindiff or indices[i+1] - indices[i] < mindiff:
 			thrown_out_too_short += 1
+			continue
+
+		if end - start < 0.06*sr:
+			full_window_too_short += 1
 			continue
 
 		snip = np.array(wav[start:end])
@@ -78,6 +83,7 @@ def generate_dataset(audioFile, raw_char_lifts, indices):
 
 	print("Too short char spaces", thrown_out_too_short)
 	print("Next to Shift", thrown_out_shift)
+	print("Full window too short", full_window_too_short)
 	print("No peak", thrown_out_no_peak)
 	print("Gathered samples", accepted)
 
@@ -95,6 +101,7 @@ for p in keyboards:
 		if f.endswith('.wav') and not f.startswith('template'):
 			if os.path.isfile(p+f[:-4]+'.pkl'):
 				print("Skipping", p+f[:-4]+'.pkl')
+				continue
 			df_times = pandas.read_csv('/'.join([base, f[:-4]+'.csv']))
 			raw_times = df_times[df_times.columns[1]].values/1000
 			raw_char_lifts = df_times[df_times.columns[2]].values

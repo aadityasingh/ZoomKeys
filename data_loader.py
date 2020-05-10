@@ -9,6 +9,9 @@ from constants import sr#, people, sentences, counts
 from python_speech_features import mfcc
 from scipy.signal import stft
 
+import torch
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.sampler import WeightedRandomSampler
 
 # Some notes on mfcc and stft (assuming samples of len ~100ms)
 # typical window for STFTing (also used in mfcc) is 25ms
@@ -36,19 +39,19 @@ class KeystrokeDataset(Dataset):
         self.class_counts = [0]*len(data)
         for i, key in enumerate(data):
             print(i, key)
-        	if opts.transform == 'mfcc':
-            	for audio in data: self.samples.append((mfcc(audio, sr,winlen=opts.window/1000, winstep=opts.slide/1000, nfft=800,nfilt=opts.ceps,numcep=opts.ceps).T, i))
-            	self.channels = 13
+            if opts.transform == 'mfcc':
+                for audio in data[key]: self.samples.append((mfcc(np.array(audio), sr,winlen=opts.window/1000, winstep=opts.slide/1000, nfft=800,nfilt=opts.ceps,numcep=opts.ceps).T, i))
+                self.channels = opts.ceps
             elif opts.transform == 'stft':
-            	for audio in data: self.samples.append((stft(audio, sr, nperseg=int(opts.window*sr/1000), noverlap=int(opts.slide*sr/1000))[2], i))
-            	self.channels = int(opts.window*sr/1000)//2+1
+                for audio in data[key]: self.samples.append((stft(np.array(audio), sr, nperseg=int(opts.window*sr/1000), noverlap=int(opts.slide*sr/1000))[2], i))
+                self.channels = int(opts.window*sr/1000)//2+1
             elif opts.transform == 'raw':
-            	for audio in data: self.samples.append((audio, i))
-            	self.channels = 1
+                for audio in data[key]: self.samples.append((np.array(audio), i))
+                self.channels = 1
             else:
-            	raise NotImplementedError
+                raise NotImplementedError
             self.class_counts[i] += 1
-        print("Length of dataset:", len(samples))
+        print("Length of dataset:", len(self.samples))
 
     def __getitem__(self, index):
         return self.samples[index]
@@ -65,7 +68,7 @@ def load_data(train_data, val_data, test_data, opts):
 
     train_dataset = KeystrokeDataset(train_data, opts)
     val_dataset = KeystrokeDataset(val_data, opts)
-    test_dataset = KeystorkeDataset(test_data, opts)
+    test_dataset = KeystrokeDataset(test_data, opts)
 
     train_sampler = WeightedRandomSampler([1/train_dataset.class_counts[sample[1]] for sample in train_dataset.samples], len(train_dataset.samples))
     val_sampler = WeightedRandomSampler([1/val_dataset.class_counts[sample[1]] for sample in val_dataset.samples], len(val_dataset.samples))
@@ -82,5 +85,5 @@ def load_data(train_data, val_data, test_data, opts):
         val_dloader = DataLoader(dataset=val_dataset, batch_size=min(opts.batch_size, len(val_dataset)), shuffle=True, num_workers=opts.num_workers)
         test_dloader = DataLoader(dataset=test_dataset, batch_size=min(opts.batch_size, len(test_dataset)), shuffle=True, num_workers=opts.num_workers)
 
-    return train_dataset.channels, len(train_sampler.class_counts), train_dloader, val_dloader, test_dloader
+    return train_dataset.channels, len(train_dataset.class_counts), train_dloader, val_dloader, test_dloader
 
