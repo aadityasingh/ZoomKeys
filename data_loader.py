@@ -38,7 +38,6 @@ class KeystrokeDataset(Dataset):
         self.samples = []
         self.class_counts = [0]*len(data)
         for i, key in enumerate(data):
-            print(i, key)
             if opts.transform == 'mfcc':
                 for audio in data[key]: self.samples.append((mfcc(np.array(audio), sr,winlen=opts.window/1000, winstep=opts.slide/1000, nfft=800,nfilt=opts.ceps,numcep=opts.ceps).T, i))
                 self.channels = opts.ceps
@@ -50,7 +49,8 @@ class KeystrokeDataset(Dataset):
                 self.channels = 1
             else:
                 raise NotImplementedError
-            self.class_counts[i] += 1
+            self.class_counts[i] = len(data[key])
+            print(i, key, self.class_counts[i])
         print("Length of dataset:", len(self.samples))
 
     def __getitem__(self, index):
@@ -76,14 +76,14 @@ def load_data(train_data, val_data, test_data, opts):
 
     if opts.balance_classes:
         print("Using WeightedRandomSampler")
-        train_dloader = DataLoader(dataset=train_dataset, batch_size=min(opts.batch_size, len(train_dataset)), sampler=train_sampler, num_workers=opts.num_workers)
-        val_dloader = DataLoader(dataset=val_dataset, batch_size=min(opts.batch_size, len(val_dataset)), sampler=val_sampler, num_workers=opts.num_workers)
-        test_dloader = DataLoader(dataset=test_dataset, batch_size=min(opts.batch_size, len(test_dataset)), sampler=test_sampler, num_workers=opts.num_workers)
+        train_dloader = DataLoader(dataset=train_dataset, batch_size=min(1, len(train_dataset)), sampler=train_sampler, num_workers=opts.num_workers)
+        val_dloader = DataLoader(dataset=val_dataset, batch_size=min(1, len(val_dataset)), sampler=val_sampler, num_workers=opts.num_workers)
+        test_dloader = DataLoader(dataset=test_dataset, batch_size=min(1, len(test_dataset)), sampler=test_sampler, num_workers=opts.num_workers)
     else:
         print("Not weighting classes")
-        train_dloader = DataLoader(dataset=train_dataset, batch_size=min(opts.batch_size, len(train_dataset)), shuffle=True, num_workers=opts.num_workers)
-        val_dloader = DataLoader(dataset=val_dataset, batch_size=min(opts.batch_size, len(val_dataset)), shuffle=True, num_workers=opts.num_workers)
-        test_dloader = DataLoader(dataset=test_dataset, batch_size=min(opts.batch_size, len(test_dataset)), shuffle=True, num_workers=opts.num_workers)
+        train_dloader = DataLoader(dataset=train_dataset, batch_size=min(1, len(train_dataset)), shuffle=True, num_workers=opts.num_workers)
+        val_dloader = DataLoader(dataset=val_dataset, batch_size=min(1, len(val_dataset)), shuffle=True, num_workers=opts.num_workers)
+        test_dloader = DataLoader(dataset=test_dataset, batch_size=min(1, len(test_dataset)), shuffle=True, num_workers=opts.num_workers)
 
     return train_dataset.channels, len(train_dataset.class_counts), train_dloader, val_dloader, test_dloader
 

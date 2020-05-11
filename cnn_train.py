@@ -54,20 +54,28 @@ class CNNTrainer:
         for epoch in range(self.opts.start_epoch, self.opts.epochs):
             loss_list = []
             print("epoch {}...".format(epoch))
+            batch_losses =[]
+            self.optimizer.zero_grad()
             for batch_idx, (data, labels) in enumerate(tqdm(self.train_loader)):
                 if self.cuda:
 #                    print('using GPU')
                     data = data.cuda()
                     labels = labels.cuda()
                 data = Variable(data)
-                self.optimizer.zero_grad()
                 linear_pred = self.model(data)
-                loss = self.loss(linear_pred, labels)
-                loss.backward()
-                self.optimizer.step()
-                loss_list.append(loss.item())
+                batch_losses.append(self.loss(linear_pred, labels))
+                if len(batch_losses) % opts.batch_size == 0:
+                    loss = sum(batch_losses)/len(batch_losses)
+                    loss.backward()
+                    self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    loss_list.append(loss.item())
+                    batch_losses = []
+                # loss.backward()
+                # self.optimizer.step()
+                # loss_list.append(loss.item())
 
-            epoch_avg_loss = np.mean(loss_list)/self.opts.batch_size
+            epoch_avg_loss = np.mean(loss_list)
             print("epoch {}: - training loss: {}".format(epoch, epoch_avg_loss))
 
             if epoch % opts.test_every == 0:
@@ -89,6 +97,7 @@ class CNNTrainer:
         self.model.eval()
         test_loss = 0
         correctly_classified = 0
+        correct_top5 = 0
         for i, (data, labels) in enumerate(self.test_loader):
             if self.cuda:
                 data = data.cuda()
@@ -97,6 +106,7 @@ class CNNTrainer:
             linear_pred = self.model(data)
             test_loss += self.loss(linear_pred, labels).item()
             correctly_classified += (linear_pred.max(dim = 1)[1] == labels).sum().item()
+            correct_top5 += (linear_pred.max(dim = 1)[1] == labels).sum().item() #not doing anything
 
         test_loss /= len(self.test_loader.dataset)
         accuracy = correctly_classified/len(self.test_loader.dataset)

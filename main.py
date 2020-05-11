@@ -11,7 +11,7 @@ import pickle as pkl
 import os
 import numpy as np
 
-from models import CNN2019, CNN2019Raw
+from models import CNN2019, CNN2019Raw, CNN2019Blast
 from data_loader import load_data
 from cnn_train import CNNTrainer
 # from evaluate import Evaluator
@@ -20,6 +20,8 @@ def make_model(train_data, val_data, test_data, opts):
 	channels, num_classes, train_loader, val_loader, test_loader = load_data(train_data, val_data, test_data, opts)
 	if opts.model =='cnn2019':
 		model = CNN2019(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
+	elif opts.model =='cnn2019blast':
+		model = CNN2019Blast(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, num_blocks=opts.blocks, hs=opts.hs).double()
 	elif opts.model =='cnn2019raw':
 		model = CNN2019Raw(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
 	else:
@@ -54,10 +56,14 @@ def create_parser():
 	parser.add_argument('--run', default='run')
 
 	# model params
-	parser.add_argument('--model', default='cnn2019', help='Choose from cnn2019, cnn2019raw')
+	parser.add_argument('--model', default='cnn2019', help='Choose from cnn2019, cnn2019raw, cnn2019blast')
 	parser.add_argument('--conv_dim', type=int, default=32, help='Num filters for the cnn2019 -- each layer has same # filters')
 	parser.add_argument('--hs', default=[64,32], nargs='*', type=int, help='List of hidden layer sizes after convolutions')
 	parser.add_argument('--avg_pool', default=1, type=int, help='What to global average pool to per channel, default 1')
+	parser.add_argument('--dropout', default=0, type=float, help='Dropout, default 0')
+	parser.add_argument('--blocks', default=[1,1], nargs=2, type=int, help='List of # resnet blocks for blast arch')
+
+
 
 	# training params
 	parser.add_argument('--epochs', dest='epochs', type=int, default = 10000)
@@ -76,9 +82,10 @@ def create_parser():
 	parser.add_argument('--num_workers', type=int, default=1)
 	parser.add_argument('--data_files', nargs='+', default=['william0.pkl'], help="space separated dataset files")
 	parser.add_argument('--balance_classes', type=int, default=1)
-	parser.add_argument('--min_class_size', type=int, default=100)
+	parser.add_argument('--min_class_size', type=int, default=120)
 	parser.add_argument('--num_test_samples', type=int, default=40, help='Number of test samples in each class to use')
-	parser.add_argument('--train_split',type=float, default=0.8, help="percent of trainval data to use for training")
+	parser.add_argument('--num_val_samples', type=int, default=40, help="Number of val samples")
+	# parser.add_argument('--train_split',type=float, default=0.8, help="percent of trainval data to use for training")
 
 	# audio process params
 	parser.add_argument('--transform', default='mfcc', help='transform to perform on audio, choose from mfcc,stft,raw')
@@ -128,9 +135,8 @@ if __name__ == "__main__":
 	for k in all_data:
 		if len(all_data[k]) > opts.min_class_size:
 			np.random.shuffle(all_data[k])
-			num_train = int(opts.train_split*(len(all_data[k])-opts.num_test_samples))
-			train_data[k] = all_data[k][opts.num_test_samples:num_train+opts.num_test_samples]
-			val_data[k] = all_data[k][num_train+opts.num_test_samples:]
+			train_data[k] = all_data[k][opts.num_val_samples+opts.num_test_samples:]
+			val_data[k] = all_data[k][opts.num_test_samples:opts.num_val_samples+opts.num_test_samples]
 			test_data[k] = all_data[k][:opts.num_test_samples]
 	print("num classes", len(train_data))
 	if opts.mode == 'train':
