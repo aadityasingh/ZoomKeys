@@ -19,11 +19,11 @@ from cnn_train import CNNTrainer
 def make_model(train_data, val_data, test_data, opts):
 	channels, num_classes, train_loader, val_loader, test_loader = load_data(train_data, val_data, test_data, opts)
 	if opts.model =='cnn2019':
-		model = CNN2019(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
+		model = CNN2019(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs, dropout=opts.dropout).double()
 	elif opts.model =='cnn2019blast':
-		model = CNN2019Blast(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, num_blocks=opts.blocks, hs=opts.hs).double()
+		model = CNN2019Blast(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, num_blocks=opts.blocks, hs=opts.hs, dropout=opts.dropout).double()
 	elif opts.model =='cnn2019raw':
-		model = CNN2019Raw(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs).double()
+		model = CNN2019Raw(channels, num_classes, avg_pool=opts.avg_pool, conv_dim=opts.conv_dim, hs=opts.hs, dropout=opts.dropout).double()
 	else:
 		raise NotImplementedError
 	if opts.cuda:
