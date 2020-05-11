@@ -32,7 +32,7 @@ def make_model(train_data, val_data, test_data, opts):
 	return model, train_loader, val_loader, test_loader
 
 def cnn_train(model, train_loader, test_loader, opts):
-	optimizer = optim.Adam(model.parameters(), lr=opts.lr, amsgrad=True)
+	optimizer = optim.Adam(model.parameters(), lr=opts.lr, amsgrad=True, weight_decay=opts.weight_decay)
 	loss = nn.CrossEntropyLoss()
 
 	if opts.load_from_chkpt != None:
@@ -56,13 +56,13 @@ def create_parser():
 	# model params
 	parser.add_argument('--model', default='cnn2019', help='Choose from cnn2019, cnn2019raw')
 	parser.add_argument('--conv_dim', type=int, default=32, help='Num filters for the cnn2019 -- each layer has same # filters')
-	parser.add_argument('--hs', default=[64,32], nargs='*', type=int, help='List of')
+	parser.add_argument('--hs', default=[64,32], nargs='*', type=int, help='List of hidden layer sizes after convolutions')
 	parser.add_argument('--avg_pool', default=1, type=int, help='What to global average pool to per channel, default 1')
 
 	# training params
 	parser.add_argument('--epochs', dest='epochs', type=int, default = 10000)
-	parser.add_argument('--test_every', dest='test_every', type = int, default = 2)
-	parser.add_argument('--checkpoint_every', dest='checkpoint_every', type = int, default = 4)
+	parser.add_argument('--test_every', dest='test_every', type = int, default = 1)
+	parser.add_argument('--checkpoint_every', dest='checkpoint_every', type = int, default = 1)
 	parser.add_argument('--load_from_chkpt', dest='load_from_chkpt', default=None) # Also used for eval
 	parser.add_argument('--new_chkpt_fname', dest='new_chkpt_fname', default="checkpoint.pth.tar")
 	parser.add_argument('--lr', dest='lr', type=float, default=0.0001)
@@ -70,7 +70,7 @@ def create_parser():
 	parser.add_argument('--start_epoch', type=int, default=0)
 	# parser.add_argument('--lr_decay', dest='lr_decay', type=float, default=0.99)
 	# parser.add_argument('--lr_step', dest='lr_step', type=int, default=1)
-	# parser.add_argument('--weight_decay', dest='weight_decay', type=float, default=0.3)
+	parser.add_argument('--weight_decay', dest='weight_decay', type=float, default=0.2)
 
 	# data params
 	parser.add_argument('--num_workers', type=int, default=1)
