@@ -72,6 +72,8 @@ def create_parser():
 	parser.add_argument('--load_from_chkpt', dest='load_from_chkpt', default=None) # Also used for eval
 	parser.add_argument('--new_chkpt_fname', dest='new_chkpt_fname', default="checkpoint.pth.tar")
 	parser.add_argument('--lr', dest='lr', type=float, default=0.0001)
+	parser.add_argument('--lr_decay', dest='lr_decay', type=float, default=0.99)
+	parser.add_argument('--lr_step', dest='lr_step', type=int, default=1)
 	parser.add_argument('--batch_size', type=int, default=1)
 	parser.add_argument('--start_epoch', type=int, default=0)
 	# parser.add_argument('--lr_decay', dest='lr_decay', type=float, default=0.99)

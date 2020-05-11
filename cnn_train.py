@@ -77,6 +77,8 @@ class CNNTrainer:
 
             epoch_avg_loss = np.mean(loss_list)
             print("epoch {}: - training loss: {}".format(epoch, epoch_avg_loss))
+            new_lr = self.adjust_learning_rate(epoch, self.optimizer)
+            print('learning rate:', new_lr)
 
             if epoch % opts.test_every == 0:
                 new_loss, new_accuracy = self.test(epoch)
@@ -116,6 +118,13 @@ class CNNTrainer:
         self.summary_writer.add_scalar('testing/accuracy', accuracy, cur_epoch)
         self.model.train()
         return test_loss, accuracy
+
+    def adjust_learning_rate(self, epoch, optim):
+        """Sets the learning rate to the initial LR multiplied by 0.99 every epoch"""
+        learning_rate = self.opts.lr * (self.opts.lr_decay ** (epoch//self.opts.lr_step))
+        for param_group in optim.param_groups:
+            param_group['lr'] = learning_rate
+        return learning_rate
 
     def save_checkpoint(self, state, is_best=False, filename='checkpoint.pth.tar'):
         '''
