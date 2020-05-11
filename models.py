@@ -14,7 +14,7 @@ def conv(in_channels, out_channels, kernel_size, stride=1, padding=1, batch_norm
         layers.append(nn.BatchNorm1d(out_channels))
     return nn.Sequential(*layers)
 
-def linear(in_channels, out_channels, batch_norm=False):
+def linear(in_channels, out_channels, batch_norm=True):
     layers = []
     layers.append(nn.Linear(in_channels, out_channels))
     if batch_norm:
