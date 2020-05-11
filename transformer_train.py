@@ -110,6 +110,7 @@ class LSTM_Classifier(nn.Module):
     self.linear = nn.Linear(hidden_size + hidden_size * int(bidirectional), output_size)
     self.out = nn.LogSoftmax(dim=1)
 
+
   def forward(self, input):
     rnn_out, _ = self.rnn(input)
     linear_out = self.linear(rnn_out)
@@ -149,3 +150,5 @@ if __name__ == "__main__":
 	else:
 		raise NotImplementedError
 	# gen_image('./runs/checkpoints/checkpoint2.pth.tar')
+
+    transformer_model = nn.Transformer()
