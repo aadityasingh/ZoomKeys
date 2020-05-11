@@ -110,7 +110,7 @@ for p in keyboards:
 			# print(peaks/sr)
 			shift=None
 			for i, num in enumerate(wav):
-				if abs(num) > 300:
+				if abs(num) > 500:
 					shift = i
 					break
 			print(shift/sr)
